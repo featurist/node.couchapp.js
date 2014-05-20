@@ -24,6 +24,8 @@ Usage - new style with multiple app files:
 
 Commands:
   push   : Push app once to server.
+           options
+            -3 : allow connections via SSL V3
   sync   : Push app then watch local files for changes.
   boiler : Create a boiler project.
   serve  : Serve couchapp from development webserver

@@ -172,7 +172,7 @@ if (process.mainModule && process.mainModule.filename === __filename) {
     if (command == 'boiler') {
       boiler(app);
     } else {
-      couchapp.createApp(require(abspath(app)), couch, function (app) {
+      couchapp.createApp(require(abspath(app)), couch, parsePushOptions(), function (app) {
         if (command == 'push') app.push()
         else if (command == 'sync') app.sync()
         else if (command == 'serve') serve(app);
@@ -181,6 +181,18 @@ if (process.mainModule && process.mainModule.filename === __filename) {
     }
   }
 
+}
+
+function parsePushOptions() {
+  var options = {};
+
+  while(arg = process.argv.shift()){
+    if(arg == '-3'){
+      options.sslv3 = true;
+    }
+  }
+
+  return options;
 }
 
 // Start a development web server on app

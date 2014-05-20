@@ -111,7 +111,15 @@ function copy (obj) {
 }
 
   
-function createApp (doc, url, cb) {
+function createApp (doc, url, options, cb) {
+  if (cb === undefined) {
+    cb = options;
+  }
+
+  if (options === undefined) {
+    options = {};
+  }
+
   var app = {doc:doc}
   
   app.fds = {};
@@ -135,6 +143,14 @@ function createApp (doc, url, cb) {
     app.doc.attachments_md5 = app.doc.attachments_md5 || {}
     app.doc._attachments = app.doc._attachments || {}
   }
+
+  function requestOptions(opts) {
+    if (options.sslv3) {
+      opts.secureProtocol = 'SSLv3_method';
+    }
+
+    return opts;
+  }
   
   var push = function (callback) {
     console.log('Serializing.')
@@ -143,14 +159,14 @@ function createApp (doc, url, cb) {
     delete doc.__attachments;
     var body = JSON.stringify(doc)
     console.log('PUT '+url.replace(/^(https?:\/\/[^@:]+):[^@]+@/, '$1:******@'))
-    request({uri:url, method:'PUT', body:body, headers:h}, function (err, resp, body) {
+    request(requestOptions({uri:url, method:'PUT', body:body, headers:h}), function (err, resp, body) {
       if (err) throw err;
       if (resp.statusCode !== 201) {
         throw new Error("Could not push document\nCode: " + resp.statusCode + "\n"+body);
       }
       app.doc._rev = JSON.parse(body).rev
       console.log('Finished push. '+app.doc._rev)
-      request({uri:url, headers:h}, function (err, resp, body) {
+      request(requestOptions({uri:url, headers:h}), function (err, resp, body) {
         body = JSON.parse(body);
         app.doc._attachments = body._attachments;
         if (callback) callback()
@@ -309,7 +325,7 @@ function createApp (doc, url, cb) {
   
   if (url.slice(url.length - _id.length) !== _id) url += '/' + _id;
 
-  request({uri:url, headers:h}, function (err, resp, body) {
+  request(requestOptions({uri:url, headers:h}), function (err, resp, body) {
     if (err) throw err;
     if (resp.statusCode == 404) app.current = {};
     else if (resp.statusCode !== 200) throw new Error("Failed to get doc\n"+body)
